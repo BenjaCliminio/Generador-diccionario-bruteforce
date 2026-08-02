@@ -1,6 +1,44 @@
 import itertools
 import re
 
+try:
+    import pyfiglet
+    TIENE_PYFIGLET = True
+except ImportError:
+    TIENE_PYFIGLET = False
+
+# ---------------------------------------------------------
+# Colores ANSI (si la terminal no los soporta, simplemente
+# se ven como texto plano, no rompe nada)
+# ---------------------------------------------------------
+
+class Color:
+    ROJO = '\033[91m'
+    VERDE = '\033[92m'
+    AMARILLO = '\033[93m'
+    CIAN = '\033[96m'
+    GRIS = '\033[90m'
+    NEGRITA = '\033[1m'
+    FIN = '\033[0m'
+
+
+def mostrar_banner():
+    titulo = "002 - dict_generator"
+
+    if TIENE_PYFIGLET:
+        arte = pyfiglet.figlet_format(titulo, font='small', width=200)
+    else:
+        # Respaldo simple por si no está instalado pyfiglet
+        arte = f"=== {titulo} ===\n"
+
+    print(f"{Color.CIAN}{Color.NEGRITA}{arte}{Color.FIN}")
+    print(f"{Color.GRIS}    -------------------------------------------------")
+    print(f"     Generador de diccionarios para bruteforce")
+    print(f"     Autor: bsec  |  Version: 1.0")
+    print(f"     Uso exclusivo en auditorias autorizadas")
+    print(f"    -------------------------------------------------{Color.FIN}\n")
+
+
 # ---------------------------------------------------------
 # Utilidades
 # ---------------------------------------------------------
@@ -215,6 +253,7 @@ def guardar_diccionarios(palabras: set, nombre_base: str, longitud_minima: int =
 # ---------------------------------------------------------
 
 def main():
+    mostrar_banner()
     datos = recolectar_datos()
     diccionario = generar_diccionario(datos)
     nombre_base = preguntar("\nNombre base para los archivos de salida (sin extensión): ") or "diccionario"
