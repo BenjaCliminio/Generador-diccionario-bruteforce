@@ -1,6 +1,12 @@
-# (002) Diccionario Fuerza Bruta (Wordlist Profiler)
+```
+  __   __ ___            _ _    _                                 _           
+ /  \ /  \_  )  ___   __| (_)__| |_    __ _ ___ _ _  ___ _ _ __ _| |_ ___ _ _ 
+| () | () / /  |___| / _` | / _|  _|  / _` / -_) ' \/ -_) '_/ _` |  _/ _ \ '_|
+ \__/ \__/___|       \__,_|_\__|\__|__\__, \___|_||_\___|_| \__,_|\__\___/_|  
+                                  |___|___/                                   
+```
 
-Generador de diccionarios de contraseñas personalizados, inspirado en herramientas como **CUPP (Common User Passwords Profiler)**. A partir de datos personales de un objetivo (nombre, fechas, apodos, mascotas, etc.), genera un archivo `.txt` con posibles contraseñas para usar en auditorías de seguridad con herramientas como **Hydra**, **John the Ripper** o **Hashcat**.
+Generador de diccionarios de contraseñas personalizados, inspirado en herramientas como **CUPP (Common User Passwords Profiler)**. A partir de datos personales de un objetivo (nombre, fechas, apodos, mascotas, etc.), genera archivos `.txt` con miles de posibles contraseñas para usar en auditorías de seguridad con herramientas como **Hydra**, **John the Ripper** o **Hashcat**.
 
 ---
 
@@ -12,14 +18,20 @@ Esta herramienta fue desarrollada con **fines educativos y de práctica en ciber
 
 ---
 
-## 🚀 Características
+## 🚀 Funcionalidades
 
-- Recolección interactiva de datos personales del objetivo
-- Generación de variantes: mayúsculas, minúsculas, capitalización, leetspeak
-- Combinación con años extraídos de fechas de nacimiento
-- Inserción de números y símbolos comunes
-- Exportación a diccionario `.txt` listo para usar
-- Ejemplos de integración directa con Hydra
+- Recolección interactiva de datos personales del objetivo (nombre, apellido, apodo, fechas, pareja, hijo/a, mascota, hobby, palabra clave, números especiales)
+- Soporte completo para **ñ** y caracteres especiales
+- **3 variantes de leetspeak** por palabra (reemplazo total, reemplazo alternativo con símbolos, y reemplazo parcial de una sola letra)
+- Extracción automática de **día, mes y año** desde las fechas de nacimiento ingresadas
+- Rango extendido de números: 0-99 y años de 1980 a 2026
+- Combinación con símbolos comunes (`! # @ . _ - $ % & *` y combinaciones dobles) en distintas posiciones
+- **Combinaciones cruzadas** entre distintas palabras (ej: nombre + mascota + número)
+- Filtro de **longitud mínima de 8 caracteres**, sin límite máximo
+- Exportación en **dos archivos separados**:
+  - `"<nombre> (minimo).txt"` → contraseñas de 8 a 10 caracteres
+  - `"<nombre> (maximo).txt"` → contraseñas de más de 10 caracteres
+- Comandos de ejemplo listos para usar con Hydra al finalizar
 
 ---
 
@@ -28,24 +40,32 @@ Esta herramienta fue desarrollada con **fines educativos y de práctica en ciber
 ```bash
 git clone https://github.com/tu-usuario/diccionario-fuerza-bruta.git
 cd diccionario-fuerza-bruta
-pip install -r requirements.txt
+pip install pyfiglet tqdm
 ```
-
-Requiere Python 3.8 o superior. No tiene dependencias externas por el momento (usa solo librerías estándar de Python).
-
----
 
 ## 🛠️ Uso
 
 Ejecutá el script principal y respondé las preguntas sobre el objetivo:
 
 ```bash
-python3 src/dict_generator/main.py
+python3 dict_generator.py
 ```
 
 Ejemplo de sesión:
 
 ```
+  __   __ ___            _ _    _                                 _           
+ /  \ /  \_  )  ___   __| (_)__| |_    __ _ ___ _ _  ___ _ _ __ _| |_ ___ _ _ 
+| () | () / /  |___| / _` | / _|  _|  / _` / -_) ' \/ -_) '_/ _` |  _/ _ \ '_|
+ \__/ \__/___|       \__,_|_\__|\__|__\__, \___|_||_\___|_| \__,_|\__\___/_|  
+                                  |___|___/                                   
+
+    -------------------------------------------------
+     Generador de diccionarios estilo CUPP
+     Autor: bsec  |  Version: 1.0
+     Uso exclusivo en auditorias autorizadas
+    -------------------------------------------------
+
 === Generador de diccionario (estilo CUPP) ===
 Completá los datos que conozcas de la persona objetivo.
 Podés dejar en blanco lo que no sepas.
@@ -54,37 +74,31 @@ Nombre: Juan
 Apellido: Perez
 Apodo / nickname: juanp
 Fecha de nacimiento (DDMMAAAA): 15031995
-Nombre de la pareja: Maria
 ...
+Nombre base para los archivos de salida (sin extensión): juan
 
-[+] Diccionario generado: diccionario.txt
-[+] Total de contraseñas candidatas: 842
+[+] Archivo generado: juan (minimo).txt (249262 contraseñas, hasta 10 caracteres)
+[+] Archivo generado: juan (maximo).txt (257051 contraseñas, más de 10 caracteres)
+[+] Total combinado: 506313 contraseñas (longitud mínima: 8)
 ```
-
-Esto genera un archivo `diccionario.txt` con las contraseñas candidatas.
 
 ---
 
-## 🔗 Integración con Hydra
+## 🔗 Integración con herramientas de fuerza bruta
 
-Una vez generado el diccionario, podés usarlo para pruebas de fuerza bruta autorizadas:
+Una vez generados los diccionarios, podés usarlos en pruebas autorizadas:
 
 ```bash
-# SSH
-hydra -l usuario -P diccionario.txt ssh://IP_OBJETIVO
+# Hydra - SSH
+hydra -l usuario -P "juan (minimo).txt" ssh://IP_OBJETIVO
 
-# Formulario web (login)
-hydra -l usuario -P diccionario.txt IP_OBJETIVO http-post-form \
+# Hydra - formulario web (login)
+hydra -l usuario -P "juan (maximo).txt" IP_OBJETIVO http-post-form \
   "/login:user=^USER^&pass=^PASS^:F=incorrect"
 
-# FTP
-hydra -l usuario -P diccionario.txt ftp://IP_OBJETIVO
+# John the Ripper
+john --wordlist="juan (minimo).txt" hash.txt
+
+# Hashcat
+hashcat -a 0 -m 0 hash.txt "juan (maximo).txt"
 ```
-
-También compatible con **John the Ripper** y **Hashcat** en modo diccionario:
-
-```bash
-john --wordlist=diccionario.txt hash.txt
-hashcat -a 0 -m 0 hash.txt diccionario.txt
-```
-
