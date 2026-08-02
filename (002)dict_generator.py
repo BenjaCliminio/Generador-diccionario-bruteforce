@@ -7,6 +7,16 @@ try:
 except ImportError:
     TIENE_PYFIGLET = False
 
+try:
+    from tqdm import tqdm
+    TIENE_TQDM = True
+except ImportError:
+    TIENE_TQDM = False
+
+    def tqdm(iterable, **kwargs):
+        """Respaldo simple si no está instalado tqdm: no muestra barra, solo itera."""
+        return iterable
+
 # ---------------------------------------------------------
 # Colores ANSI (si la terminal no los soporta, simplemente
 # se ven como texto plano, no rompe nada)
@@ -33,7 +43,7 @@ def mostrar_banner():
 
     print(f"{Color.CIAN}{Color.NEGRITA}{arte}{Color.FIN}")
     print(f"{Color.GRIS}    -------------------------------------------------")
-    print(f"     Generador de diccionarios para bruteforce")
+    print(f"     Generador de diccionarios estilo CUPP")
     print(f"     Autor: bsec  |  Version: 1.0")
     print(f"     Uso exclusivo en auditorias autorizadas")
     print(f"    -------------------------------------------------{Color.FIN}\n")
@@ -194,7 +204,7 @@ def generar_diccionario(datos: dict) -> set:
 
     resultado = set()
 
-    for palabra in palabras_base:
+    for palabra in tqdm(palabras_base, desc="Combinando palabras", unit="palabra"):
         for numero in numeros:
             for simbolo in simbolos:
                 resultado.add(f"{palabra}{numero}{simbolo}")
@@ -204,8 +214,10 @@ def generar_diccionario(datos: dict) -> set:
 
     # Combinaciones dobles: palabra + palabra (ej: nombre + mascota)
     lista_palabras = list(palabras_base)
-    for p1, p2 in itertools.permutations(lista_palabras, 2):
-        for numero in list(numeros)[:15]:  # limitar para no explotar demasiado
+    numeros_reducidos = list(numeros)[:15]  # limitar para no explotar demasiado
+    for p1, p2 in tqdm(list(itertools.permutations(lista_palabras, 2)),
+                        desc="Cruzando pares de palabras", unit="par"):
+        for numero in numeros_reducidos:
             resultado.add(f"{p1}{p2}{numero}")
             resultado.add(f"{p1}{numero}{p2}")
 
@@ -236,11 +248,11 @@ def guardar_diccionarios(palabras: set, nombre_base: str, longitud_minima: int =
     archivo_max = f"{nombre_base} (maximo).txt"
 
     with open(archivo_min, 'w', encoding='utf-8') as f:
-        for p in cortas:
+        for p in tqdm(cortas, desc=f"Guardando {archivo_min}", unit="linea"):
             f.write(p + '\n')
 
     with open(archivo_max, 'w', encoding='utf-8') as f:
-        for p in largas:
+        for p in tqdm(largas, desc=f"Guardando {archivo_max}", unit="linea"):
             f.write(p + '\n')
 
     print(f"\n[+] Archivo generado: {archivo_min} ({len(cortas)} contraseñas, hasta {umbral_corte} caracteres)")
